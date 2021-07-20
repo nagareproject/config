@@ -292,7 +292,7 @@ class Section(dict):
 
         ref = (id(section), parameter_name)
         if ref in refs:
-            loop = [repr(ref[1]) for ref in refs]
+            loop = [repr(r[1]) for r in refs]
             raise InterpolationError(
                 'interpolation loop {} detected'.format(' -> '.join(loop)),
                 sections=ancestors_names
