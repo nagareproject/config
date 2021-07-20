@@ -54,7 +54,6 @@ class Validator(object):
         min = params.get('min')
         max = params.get('min')
         default = params.get('default', NO_DEFAULT)
-        help = params.get('help')
 
         return float(*args) if (args or default is NO_DEFAULT) else partial(cls._number, float, min, max, default)
 
@@ -130,7 +129,6 @@ class Validator(object):
         min = params.get('min')
         max = params.get('min')
         default = params.get('default', NO_DEFAULT)
-        help = params.get('help')
 
         list_constructor = args or (min, max, default, help) == (None, None, NO_DEFAULT, None)
         return list(args) if list_constructor else partial(cls._list, str, min, max, default)
@@ -140,7 +138,6 @@ class Validator(object):
         min = params.get('min')
         max = params.get('min')
         default = params.get('default', NO_DEFAULT)
-        help = params.get('help')
 
         return cls.list(*args, min=min, max=max, default=default, help='')
     force_list = string_list
@@ -154,7 +151,6 @@ class Validator(object):
         min = params.get('min')
         max = params.get('min')
         default = params.get('default', NO_DEFAULT)
-        help = params.get('help')
 
         tuple_constructor = args or (min, max, default, help) == (None, None, NO_DEFAULT, None)
         return args if tuple_constructor else partial(cls._tuple, min, max, default)
@@ -184,7 +180,6 @@ class Validator(object):
     @classmethod
     def option(cls, *args, **params):
         default = params.get('default', NO_DEFAULT)
-        help = params.get('help')
 
         return partial(cls._option, args, default)
 
