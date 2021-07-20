@@ -41,6 +41,8 @@ VALUE = re.compile(r'''
     )
 '''.format(TAIL.pattern), re.VERBOSE)
 
+FULL_VALUE = re.compile('^{}$'.format(VALUE.pattern), re.VERBOSE)
+
 LINE = re.compile(r'''^
     \s*
     (
@@ -94,6 +96,8 @@ INTERPOLATION = re.compile(r'''
     )
 ''', re.VERBOSE)
 
+FULL_INTERPOLATION = re.compile('^{}$'.format(INTERPOLATION.pattern), re.VERBOSE)
+
 
 class Section(dict):
 
@@ -134,7 +138,7 @@ class Section(dict):
 
         for k, v in sorted(self.sections.items()):
             if filter_parameter(k):
-                print()
+                print('')
                 print(spaces + ('[' * (level + 1)) + k + (']' * (level + 1)))
                 v.display(indent, level + 1, filter_parameter)
 
@@ -162,16 +166,16 @@ class Section(dict):
 
     @classmethod
     def parse_value(cls, value):
-        return cls._parse_value(**VALUE.fullmatch(value).groupdict())
+        return cls._parse_value(**FULL_VALUE.match(value).groupdict())
 
     @staticmethod
     def parse_multilines(lines, nb_lines, value, end):
         start_line = nb_lines
-        line_pattern = re.compile(r'(?P<value>.*?)(?P<delimiter>{}\s*(#.*)?)?'.format(end))
+        line_pattern = re.compile(r'^(?P<value>.*?)(?P<delimiter>{}\s*(#.*)?)?$'.format(end))
 
         for line in lines:
             nb_lines += 1
-            m = line_pattern.fullmatch(line[:-1])
+            m = line_pattern.match(line[:-1])
             value += '\n' + m.group('value')
             if m.group('delimiter'):
                 break
@@ -337,7 +341,7 @@ class Section(dict):
         if name.startswith('_'):
             return name, self
 
-        match = INTERPOLATION.fullmatch(name)
+        match = FULL_INTERPOLATION.match(name)
         if match:
             new_name, value = self._interpolate(ancestors, ancestors_names, name, global_config, refs, **match.groupdict())
             if isinstance(value, Section):
