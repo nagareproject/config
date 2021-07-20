@@ -22,6 +22,12 @@ class Validator(object):
         if name.startswith('_'):
             raise AttributeError(name)
 
+        if name == 'True':
+            return True
+
+        if name == 'False':
+            return False
+
         return getattr(self, name, name)
 
     @staticmethod
