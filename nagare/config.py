@@ -338,9 +338,6 @@ class Section(dict):
         return value if is_list else value[0]
 
     def interpolate_section(self, name, ancestors, ancestors_names, global_config, refs):
-        if name.startswith('_'):
-            return name, self
-
         match = FULL_INTERPOLATION.match(name)
         if match:
             new_name, value = self._interpolate(ancestors, ancestors_names, name, global_config, refs, **match.groupdict())
@@ -362,13 +359,16 @@ class Section(dict):
 
         sections = {}
         for name, section in self.sections.items():
-            new_ancestors = ancestors + (self,)
-            new_ancestors_names = ancestors_names + (name,)
+            if not name.startswith('_'):
+                new_ancestors = ancestors + (self,)
+                new_ancestors_names = ancestors_names + (name,)
 
-            name, value = section.interpolate_section(name, new_ancestors, new_ancestors_names, global_config, [])
+                name, value = section.interpolate_section(name, new_ancestors, new_ancestors_names, global_config, [])
 
-            section = config_from_dict(value).merge(section)
-            sections[name] = section.interpolate(global_config, new_ancestors, new_ancestors_names)
+                section = config_from_dict(value).merge(section)
+                section = section.interpolate(global_config, new_ancestors, new_ancestors_names)
+
+            sections[name] = section
 
         self.sections = sections
 
