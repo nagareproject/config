@@ -65,12 +65,12 @@ class Validator(object):
 
     @staticmethod
     def _to_boolean(v):
-        v = v.strip()
+        v = v.strip().lower()
 
-        if v in ('true', 'on', 'yes', '1', 1):
+        if v in ('true', 'on', 'yes', '1'):
             return True
 
-        if v in ('false', 'off', 'no', '0', 0):
+        if v in ('false', 'off', 'no', '0'):
             return False
 
         raise ValueError('not a boolean {}'.format(repr(v)))
