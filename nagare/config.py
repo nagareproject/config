@@ -22,6 +22,7 @@ from .config_exceptions import (  # noqa: F401
 from .validate import Validator, NO_DEFAULT
 
 QUOTE = '"\''
+QUOTES = tuple(QUOTE)
 
 TAIL = re.compile(r'''
     \s*,\s*
@@ -155,12 +156,22 @@ class Section(dict):
         return self
 
     @staticmethod
-    def _parse_value(value, head, tail, tail1, tail2, **kw):
+    def strip_quotes(v):
+        if v.startswith(QUOTES):
+            v = v[1:]
+
+        if v.endswith(QUOTES):
+            v = v[:-1]
+
+        return v
+
+    @classmethod
+    def _parse_value(cls, value, head, tail, tail1, tail2, **kw):
         if not tail:
-            value = head.strip(QUOTE)
+            value = cls.strip_quotes(head)
         else:
             if head.startswith(('"', "'")) or tail1 or tail2:
-                value = [e.strip(QUOTE) for e, _, _ in TAIL.findall(',' + value)]
+                value = [cls.strip_quotes(e) for e, _, _ in TAIL.findall(',' + value)]
 
         return value
 
