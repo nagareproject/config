@@ -21,8 +21,7 @@ from .config_exceptions import (  # noqa: F401
 )
 from .validate import Validator, NO_DEFAULT
 
-QUOTE = '"\''
-QUOTES = tuple(QUOTE)
+QUOTES = ('"', "'")
 
 TAIL = re.compile(r'''
     \s*,\s*
@@ -216,7 +215,7 @@ class Section(dict):
 
             m = x.groupdict()
             if m['section']:
-                name = m['section'].strip(QUOTE)
+                name = self.strip_quotes(m['section'])
 
                 level = len(m['section_in'])
                 if len(m['section_out']) != level:
@@ -240,7 +239,7 @@ class Section(dict):
                     raise SectionError('section too nested', nb_lines, ancestors_names, name)
 
             if m['name']:
-                name = m['name'].strip(QUOTE)
+                name = self.strip_quotes(m['name'])
                 if (name in self) or (name in self.sections):
                     raise ParameterError('duplicate parameter name', nb_lines, ancestors_names, name)
 
