@@ -141,8 +141,8 @@ class Validator(object):
         return list(args) if list_constructor else partial(cls._list, str, min, max, default)
 
     @classmethod
-    def string_list(cls, *args, **params):
-        return cls.list(*args, **params)
+    def string_list(cls, min=None, max=None, default=NO_DEFAULT, help=None):
+        return partial(cls._list, str, min, max, default)
     force_list = string_list
 
     @classmethod
@@ -192,10 +192,13 @@ class Validator(object):
             validation = eval(expr, {}, self)
             if not isinstance(validation, partial):
                 validation = validation()
-        except Exception:
-            raise SpecificationError('invalid specification {}'.format(repr(expr)), sections=ancestors_name, name=name)
 
-        return validation(v, ancestors_name, name)
+            return validation(v, ancestors_name, name)
+        except Exception as e:
+            e = SpecificationError('invalid specification {}'.format(repr(expr)), sections=ancestors_name, name=name)
+            e.__cause__ = None
+
+            raise e
 
     def get_default_value(self, expr, ancestors_names, name):
         return self.validate(expr, None, ancestors_names, name)
