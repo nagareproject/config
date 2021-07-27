@@ -118,6 +118,9 @@ class Section(dict):
     def pop(self, k, default=None):
         return self.__getitem(k) if k in self else self.sections.pop(k, default)
 
+    def setdefault(self, k, v):
+        return (self.sections.setdefault if isinstance(v, dict) else self.setdefault)(k, v)
+
     def dict(self):
         return dict(self, **{k: v.dict() for k, v in self.sections.items()})
 
