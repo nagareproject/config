@@ -88,7 +88,7 @@ INTERPOLATION = re.compile(r'''
                             (\${[^}]+})
                             |
                             .
-                        )+
+                        )*
                     )
                 )?
             }
