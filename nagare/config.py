@@ -356,6 +356,7 @@ class Section(dict):
             new_name, value = self._interpolate(ancestors, ancestors_names, name, global_config, refs, **match.groupdict())
             if isinstance(value, Section):
                 value.interpolate(global_config, ancestors, ancestors_names)
+                new_name = new_name.split('/')[-1]
             else:
                 new_name, value = value, config_from_dict({})
         else:
