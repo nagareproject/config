@@ -71,3 +71,10 @@ class InterpolationError(ContextualParseError):
     @property
     def context(self):
         return super(InterpolationError, self).context + (' in section{}'.format(self.sections))
+
+
+class DirectiveError(ContextualParseError):
+
+    @property
+    def context(self):
+        return super(DirectiveError, self).context + (' in section{}'.format(self.sections))

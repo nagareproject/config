@@ -17,7 +17,8 @@ from .config_exceptions import (  # noqa: F401
     SpecificationError,
     SectionError,
     ParameterError,
-    InterpolationError
+    InterpolationError,
+    DirectiveError
 )
 from .validate import Validator, NO_DEFAULT
 
@@ -51,7 +52,13 @@ LINE = re.compile(r'''^
         (
             (?P<section_in>\[+)
             \s*
-            (?P<section>("[^"]+")|('[^']+')|([^'"]+?))
+            (?P<section>
+                ("[^"]+")|('[^']+')
+                |
+                (\$\((?P<section_directive>[^ ]+)(\ (?P<section_directive_args>[^)]+))?\))
+                |
+                ([^'"]*?)
+            )
             \s*
             (?P<section_out>\]+)
             \s*
@@ -135,11 +142,11 @@ class Section(dict):
     def display(self, indent=0, level=0, filter_parameter=lambda parameter: True):
         spaces = ' ' * (indent * level)
 
-        for k, v in sorted(self.items()):
+        for k, v in sorted(self.items(), key=lambda param: (param[0] == '___many___', param[0])):
             if filter_parameter(k):
                 print(spaces + k + ' = ' + repr(v))
 
-        for k, v in sorted(self.sections.items()):
+        for k, v in sorted(self.sections.items(), key=lambda section: (section[0] == '__many__', section)):
             if filter_parameter(k):
                 print('')
                 print(spaces + ('[' * (level + 1)) + k + (']' * (level + 1)))
@@ -197,19 +204,7 @@ class Section(dict):
 
         return nb_lines, value
 
-    def create_section(self, lines, max_depth, name, ancestors, ancestors_names, nb_lines):
-        if (name in self) or (name in self.sections):
-            raise SectionError('duplicate section name', nb_lines, ancestors_names, name)
-
-        self.sections[name] = None
-        self.sections[name] = Section().from_iter(
-            lines,
-            max_depth,
-            ancestors + (self,), ancestors_names + (name,),
-            nb_lines
-        )
-
-    def from_iter(self, lines, max_depth=0, ancestors=(), ancestors_names=(), nb_lines=0):
+    def from_iter(self, lines, global_config=None, max_depth=0, ancestors=(), ancestors_names=(), nb_lines=0):
         for line in lines:
             nb_lines += 1
             x = LINE.match(line.rstrip())
@@ -228,18 +223,32 @@ class Section(dict):
                     return self
 
                 if level == (len(ancestors) + 1):
-                    self.create_section(lines, max_depth, name, ancestors, ancestors_names, nb_lines)
+                    parent = self
+                    section_ancestors = ancestors
+                    section_ancestors_names = ancestors_names
                 elif level <= len(ancestors):
                     ancestors = ancestors[:level]
-                    ancestors[-1].create_section(
+                    parent = ancestors[-1]
+                    section_ancestors = ancestors[:-1]
+                    section_ancestors_names = ancestors_names[:level - 1]
+                else:
+                    raise SectionError('section too nested', nb_lines, ancestors_names, name)
+
+                directive = m.get('section_directive')
+                if not directive:
+                    if (name in parent) or (name in parent.sections):
+                        raise SectionError('duplicate section name', nb_lines, section_ancestors_names, name)
+
+                    parent.sections[name] = None
+                    parent.sections[name] = Section().from_iter(
                         lines,
+                        global_config,
                         max_depth,
-                        name,
-                        ancestors[:-1], ancestors_names[:level - 1],
+                        section_ancestors + (parent,), section_ancestors_names + (name,),
                         nb_lines
                     )
                 else:
-                    raise SectionError('section too nested', nb_lines, ancestors_names, name)
+                    raise DirectiveError('invalid directive', nb_lines, ancestors_names, directive)
 
             if m['name']:
                 name = self.strip_quotes(m['name'])
@@ -445,14 +454,14 @@ def config_from_dict(d):
     return Section().from_dict(d)
 
 
-def config_from_iter(lines, max_depth=0):
-    return Section().from_iter(lines, max_depth)
+def config_from_iter(lines, global_config=None, max_depth=0):
+    return Section().from_iter(lines, global_config, max_depth)
 
 
-def config_from_file(filename, max_depth=0):
+def config_from_file(filename, global_config=None, max_depth=0):
     with open(filename) as f:
-        return config_from_iter(f, max_depth)
+        return config_from_iter(f, global_config, max_depth)
 
 
-def config_from_string(string, max_depth=0):
-    return config_from_iter(iter(string.splitlines()), max_depth)
+def config_from_string(string, global_config=None, max_depth=0):
+    return config_from_iter(iter(string.splitlines()), global_config, max_depth)
