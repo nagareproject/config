@@ -57,7 +57,7 @@ LINE = re.compile(r'''^
                 |
                 (\$\((?P<section_directive>[^ ]+)(\ (?P<section_directive_args>[^)]+))?\))
                 |
-                ([^'"]*?)
+                ([^'"]+?)
             )
             \s*
             (?P<section_out>\]+)
