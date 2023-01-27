@@ -1,7 +1,7 @@
 # Encoding: utf-8
 
 # --
-# Copyright (c) 2008-2022 Net-ng.
+# Copyright (c) 2008-2023 Net-ng.
 # All rights reserved.
 #
 # This software is licensed under the BSD License, as described in
@@ -11,13 +11,12 @@
 
 from functools import partial
 
-from .config_exceptions import SpecificationError, ParameterError
+from .config_exceptions import ParameterError, SpecificationError
 
 NO_DEFAULT = object()
 
 
 class Validator(object):
-
     def __getitem__(self, name):
         if name.startswith('_'):
             raise AttributeError(name)
@@ -143,6 +142,7 @@ class Validator(object):
     @classmethod
     def string_list(cls, min=None, max=None, default=NO_DEFAULT, help=None):
         return partial(cls._list, str, min, max, default)
+
     force_list = string_list
 
     @classmethod

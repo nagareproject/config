@@ -1,7 +1,7 @@
 # Encoding: utf-8
 
 # --
-# Copyright (c) 2008-2022 Net-ng.
+# Copyright (c) 2008-2023 Net-ng.
 # All rights reserved.
 #
 # This software is licensed under the BSD License, as described in
@@ -13,18 +13,19 @@ import re
 
 from .config_exceptions import (  # noqa: F401
     ConfigError,
-    ParseError,
-    SpecificationError,
-    SectionError,
-    ParameterError,
+    DirectiveError,
     InterpolationError,
-    DirectiveError
+    ParameterError,
+    ParseError,
+    SectionError,
+    SpecificationError,
 )
-from .validate import Validator, NO_DEFAULT
+from .validate import NO_DEFAULT, Validator
 
 QUOTES = ('"', "'")
 
-TAIL = re.compile(r'''
+TAIL = re.compile(
+    r'''
     \s*,\s*
     (
        (?P<tail1>"[^"]*")
@@ -33,18 +34,26 @@ TAIL = re.compile(r'''
        |
        (?:[^"',\s]*)
     )
-''', re.VERBOSE)
+''',
+    re.VERBOSE,
+)
 
-VALUE = re.compile(r'''
+VALUE = re.compile(
+    r'''
     (?P<value>
         (?P<head>("[^"]*")|('[^']*')|([^'"]*?))
         (?P<tail>{})*
     )
-'''.format(TAIL.pattern), re.VERBOSE)
+'''.format(
+        TAIL.pattern
+    ),
+    re.VERBOSE,
+)
 
 FULL_VALUE = re.compile('^{}$'.format(VALUE.pattern), re.VERBOSE)
 
-LINE = re.compile(r'''^
+LINE = re.compile(
+    r'''^
     \s*
     (
         (\#.*)
@@ -77,9 +86,14 @@ LINE = re.compile(r'''^
        \s*(\#.*)?
     )?
     $
-'''.format(VALUE.pattern), re.VERBOSE)
+'''.format(
+        VALUE.pattern
+    ),
+    re.VERBOSE,
+)
 
-INTERPOLATION = re.compile(r'''
+INTERPOLATION = re.compile(
+    r'''
     \$
     (
         (?P<escaped>\$)
@@ -101,19 +115,21 @@ INTERPOLATION = re.compile(r'''
             }
         )
     )
-''', re.VERBOSE)
+''',
+    re.VERBOSE,
+)
 
 FULL_INTERPOLATION = re.compile('^{}$'.format(INTERPOLATION.pattern), re.VERBOSE)
 
 
 class Section(dict):
-
     def __init__(self, *args, **kw):
         super(Section, self).__init__(*args, **kw)
         self.sections = {}
 
     def __bool__(self):
         return bool(super(Section, self)) or bool(self.sections)
+
     __nonzero__ = __bool__
 
     def __getitem__(self, k):
@@ -230,7 +246,7 @@ class Section(dict):
                     ancestors = ancestors[:level]
                     parent = ancestors[-1]
                     section_ancestors = ancestors[:-1]
-                    section_ancestors_names = ancestors_names[:level - 1]
+                    section_ancestors_names = ancestors_names[: level - 1]
                 else:
                     raise SectionError('section too nested', nb_lines, ancestors_names, name)
 
@@ -244,8 +260,9 @@ class Section(dict):
                         lines,
                         global_config,
                         max_depth,
-                        section_ancestors + (parent,), section_ancestors_names + (name,),
-                        nb_lines
+                        section_ancestors + (parent,),
+                        section_ancestors_names + (name,),
+                        nb_lines,
                     )
                 else:
                     raise DirectiveError('invalid directive', nb_lines, ancestors_names, directive)
@@ -311,26 +328,21 @@ class Section(dict):
 
         if value is None:
             raise InterpolationError(
-                'variable {} not found'.format(repr(parameter_name)),
-                sections=ancestors_names,
-                name=name
+                'variable {} not found'.format(repr(parameter_name)), sections=ancestors_names, name=name
             )
 
         ref = (id(section), parameter_name)
         if ref in refs:
             loop = [repr(r[1]) for r in refs]
             raise InterpolationError(
-                'interpolation loop {} detected'.format(' -> '.join(loop)),
-                sections=ancestors_names
+                'interpolation loop {} detected'.format(' -> '.join(loop)), sections=ancestors_names
             )
 
         value = self.interpolate_parameter(value, ancestors, ancestors_names, name, global_config, refs + [ref])
 
         if isinstance(value, list):
             raise InterpolationError(
-                "variable {} is list {}".format(repr(parameter_name), repr(value)),
-                sections=ancestors_names,
-                name=name
+                'variable {} is list {}'.format(repr(parameter_name), repr(value)), sections=ancestors_names, name=name
             )
 
         return parameter_name, value
@@ -339,9 +351,7 @@ class Section(dict):
         name, value = self._interpolate(ancestors, ancestors_names, name, global_config, refs, **match)
         if isinstance(value, list):
             raise InterpolationError(
-                "variable {} is list {}".format(repr(name), repr(value)),
-                sections=ancestors_names,
-                name=name
+                'variable {} is list {}'.format(repr(name), repr(value)), sections=ancestors_names, name=name
             )
 
         return value
@@ -350,11 +360,12 @@ class Section(dict):
         is_list = isinstance(value, list)
 
         def interpolate(match):
-            return self._interpolate_parameter(ancestors, ancestors_names, name, global_config, refs, **match.groupdict())
+            return self._interpolate_parameter(
+                ancestors, ancestors_names, name, global_config, refs, **match.groupdict()
+            )
 
         value = [
-            INTERPOLATION.sub(interpolate, e) if isinstance(e, str) else e
-            for e in (value if is_list else [value])
+            INTERPOLATION.sub(interpolate, e) if isinstance(e, str) else e for e in (value if is_list else [value])
         ]
 
         return value if is_list else value[0]
@@ -362,7 +373,9 @@ class Section(dict):
     def interpolate_section(self, name, ancestors, ancestors_names, global_config, refs):
         match = FULL_INTERPOLATION.match(name)
         if match:
-            new_name, value = self._interpolate(ancestors, ancestors_names, name, global_config, refs, **match.groupdict())
+            new_name, value = self._interpolate(
+                ancestors, ancestors_names, name, global_config, refs, **match.groupdict()
+            )
             if isinstance(value, Section):
                 value.interpolate(global_config, ancestors, ancestors_names)
                 new_name = new_name.split('/')[-1]
@@ -418,7 +431,7 @@ class Section(dict):
 
         many_sections = spec.sections.get('__many__')
         if many_sections is not None:
-            for name in (set(self.sections) - set(spec.sections)):
+            for name in set(self.sections) - set(spec.sections):
                 self.sections[name].merge_defaults(many_sections, validator, ancestors + (name,))
 
         return self
@@ -429,10 +442,10 @@ class Section(dict):
         section_keys = set(self)
         spec_keys = set(spec)
 
-        for k in (section_keys & spec_keys):
+        for k in section_keys & spec_keys:
             self[k] = validator.validate(spec[k], self[k], ancestors_names, k)
 
-        for k in (set(self.sections) & set(spec.sections)):
+        for k in set(self.sections) & set(spec.sections):
             self.sections[k].validate(spec.sections[k], validator, ancestors_names + (k,))
 
         many_parameters = spec.get('___many___')
@@ -442,10 +455,11 @@ class Section(dict):
 
         many_sections = spec.sections.get('__many__')
         if many_sections is not None:
-            for k in (set(self.sections) - set(spec.sections)):
+            for k in set(self.sections) - set(spec.sections):
                 self.sections[k].validate(many_sections, validator, ancestors_names + (k,))
 
         return self
+
 
 # ---------------------------------------------------------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 # Encoding: utf-8
 
 # --
-# Copyright (c) 2008-2022 Net-ng.
+# Copyright (c) 2008-2023 Net-ng.
 # All rights reserved.
 #
 # This software is licensed under the BSD License, as described in
@@ -11,7 +11,6 @@
 
 
 class ConfigError(ValueError):
-
     def __init__(self, error, line=None):
         self.error = error
         self.line = line
@@ -29,7 +28,6 @@ class ParseError(ConfigError):
 
 
 class ContextualParseError(ParseError):
-
     def __init__(self, error, line=None, sections=(), name=None):
         super(ContextualParseError, self).__init__(error, line)
 
@@ -46,35 +44,30 @@ class ContextualParseError(ParseError):
 
 
 class SpecificationError(ContextualParseError):
-
     @property
     def context(self):
         return super(SpecificationError, self).context + (' for specification{}'.format(self.sections))
 
 
 class SectionError(ContextualParseError):
-
     @property
     def context(self):
         return super(SectionError, self).context + (' for section{}'.format(self.sections))
 
 
 class ParameterError(SpecificationError):
-
     @property
     def context(self):
         return super(SpecificationError, self).context + (' for parameter{}'.format(self.sections))
 
 
 class InterpolationError(ContextualParseError):
-
     @property
     def context(self):
         return super(InterpolationError, self).context + (' in section{}'.format(self.sections))
 
 
 class DirectiveError(ContextualParseError):
-
     @property
     def context(self):
         return super(DirectiveError, self).context + (' in section{}'.format(self.sections))
