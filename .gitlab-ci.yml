@@ -11,12 +11,11 @@
 
 tests2:
   script:
-    - pip2 install flake8 'pytest<5' .
-    - flake8 nagare
+    - pip2 install 'pytest<5' .
     - pytest
 
 tests3:
   script:
-    - pip3 install flake8 pytest .
-    - flake8 nagare
+    - pip3 install ruff pytest .
+    - ruff src
     - pytest
