@@ -9,12 +9,7 @@
 # this distribution.
 # --
 
-tests2:
-  script:
-    - pip2 install 'pytest<5' .
-    - pytest
-
-tests3:
+tests:
   script:
     - pip3 install ruff pytest .
     - ruff src
