@@ -25,7 +25,7 @@ from .validate import NO_DEFAULT, Validator
 QUOTES = ('"', "'")
 
 TAIL = re.compile(
-    r'''
+    r"""
     \s*,\s*
     (
        (?P<tail1>"[^"]*")
@@ -34,19 +34,17 @@ TAIL = re.compile(
        |
        (?:[^"',\s]*)
     )
-''',
+""",
     re.VERBOSE,
 )
 
 VALUE = re.compile(
-    r'''
+    r"""
     (?P<value>
         (?P<head>("[^"]*")|('[^']*')|([^'"]*?))
         (?P<tail>{})*
     )
-'''.format(
-        TAIL.pattern
-    ),
+""".format(TAIL.pattern),
     re.VERBOSE,
 )
 
@@ -86,14 +84,12 @@ LINE = re.compile(
        \s*(\#.*)?
     )?
     $
-'''.format(
-        VALUE.pattern
-    ),
+'''.format(VALUE.pattern),
     re.VERBOSE,
 )
 
 INTERPOLATION = re.compile(
-    r'''
+    r"""
     \$
     (
         (?P<escaped>\$)
@@ -115,7 +111,7 @@ INTERPOLATION = re.compile(
             }
         )
     )
-''',
+""",
     re.VERBOSE,
 )
 
@@ -195,7 +191,7 @@ class Section(dict):
         if not tail:
             value = cls.strip_quotes(head)
         else:
-            if head.startswith(('"', "'")) or tail1 or tail2:
+            if head.startswith(QUOTES) or tail1 or tail2:
                 value = [cls.strip_quotes(e) for e, _, _ in TAIL.findall(',' + value)]
 
         return value

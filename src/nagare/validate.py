@@ -189,12 +189,12 @@ class Validator(object):
 
     def validate(self, expr, v, ancestors_name, name):
         try:
-            validation = eval(expr, {}, self)
+            validation = eval(expr, {}, self)  # noqa: S307
             if not isinstance(validation, partial):
                 validation = validation()
 
             return validation(v, ancestors_name, name)
-        except Exception as e:
+        except Exception:
             e = SpecificationError('invalid specification {}'.format(repr(expr)), sections=ancestors_name, name=name)
             e.__cause__ = None
 
