@@ -1,5 +1,5 @@
 # =-
-# (C)opyright Net-ng 2023
+# (C)opyright Net-ng 2008-2024
 #
 # This is Net-ng proprietary source code
 # Any reproduction modification or use without prior written
@@ -33,7 +33,6 @@ dev = [
     'pre-commit',
     'ruff',
     'pytest',
-    'build',
     'twine'
 ]
 
@@ -42,9 +41,6 @@ Homepage = 'https://nagare.org'
 Documentation = 'https://nagare.org/doc'
 Source = 'https://github.com/nagareproject/config'
 Tracker = 'https://github.com/nagareproject/config/issues'
-
-[tool.distutils.bdist_wheel]
-universal = true
 
 [tool.ruff]
 select = ['C4', 'COM', 'D', 'E', 'ERA', 'F', 'I', 'ISC', 'INP', 'N', 'PIE', 'Q', 'S', 'SIM', 'TID', 'W', 'YTT']
@@ -60,8 +56,7 @@ multiline-quotes = 'double'
 convention = 'google'
 
 [tool.ruff.isort]
-known-third-party = ['nagare']
-force-sort-within-sections = true
+length-sort = true
 
 [tool.ruff.format]
 quote-style = 'single'

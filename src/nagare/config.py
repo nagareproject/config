@@ -1,7 +1,7 @@
 # Encoding: utf-8
 
 # --
-# Copyright (c) 2008-2023 Net-ng.
+# Copyright (c) 2008-2024 Net-ng.
 # All rights reserved.
 #
 # This software is licensed under the BSD License, as described in
@@ -11,16 +11,16 @@
 
 import re
 
+from .validate import NO_DEFAULT, Validator
 from .config_exceptions import (  # noqa: F401
-    ConfigError,
-    DirectiveError,
-    InterpolationError,
-    ParameterError,
     ParseError,
+    ConfigError,
     SectionError,
+    DirectiveError,
+    ParameterError,
+    InterpolationError,
     SpecificationError,
 )
-from .validate import NO_DEFAULT, Validator
 
 QUOTES = ('"', "'")
 
