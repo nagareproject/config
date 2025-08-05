@@ -1,5 +1,5 @@
 # --
-# Copyright (c) 2008-2024 Net-ng.
+# Copyright (c) 2008-2025 Net-ng.
 # All rights reserved.
 #
 # This software is licensed under the BSD License, as described in
@@ -9,7 +9,7 @@
 
 import pytest
 
-from nagare.config import config_from_string, ParseError, SectionError
+from nagare.config import ParseError, SectionError, config_from_string
 
 
 def test_parse1():
@@ -51,19 +51,19 @@ def test_parse2():
     with pytest.raises(ParseError, match='line #1'):
         config_from_string(c)
 
-    c = '''["section]'''
+    c = """["section]"""
     with pytest.raises(ParseError, match='line #1'):
         config_from_string(c)
 
-    c = '''[section"]'''
+    c = """[section"]"""
     with pytest.raises(ParseError, match='line #1'):
         config_from_string(c)
 
-    c = '''["sfsfsf']'''
+    c = """["sfsfsf']"""
     with pytest.raises(ParseError, match='line #1'):
         config_from_string(c)
 
-    c = '''['sfsfsf"]''' ''
+    c = """['sfsfsf"]""" ''
     with pytest.raises(ParseError, match='line #1'):
         config_from_string(c)
 
@@ -77,14 +77,14 @@ def test_parse2():
 
 
 def test_parse3():
-    c = '''
+    c = """
     [section 1]
     [    section 2   ]
     ["section 3"]
     [    "section 4"   ]
     ['section 5']
     [    'section 6'   ]
-    '''
+    """
     c = config_from_string(c)
     assert c['section 1'] == {}
     assert c['section 2'] == {}
@@ -93,13 +93,13 @@ def test_parse3():
     assert c['section 5'] == {}
     assert c['section 6'] == {}
 
-    c = '''[section1]#Comment
+    c = """[section1]#Comment
         [[section 1-1]]  # Comment
         [[section 1-2]]  # [section]
       [section2]  # ['section']
         [[section 2-1]]  # ["section"]
         [[section 2-2]]
-    '''
+    """
     c = config_from_string(c)
     assert (len(c['section1']) == 0) and (len(c['section1'].sections) == 2)
     assert c['section1']['section 1-1'] == {}
@@ -111,43 +111,43 @@ def test_parse3():
 
 
 def test_parse4():
-    c = '''
+    c = """
     [section]
     [[section2]
-    '''
+    """
     with pytest.raises(ParseError, match='depth'):
         c = config_from_string(c)
 
-    c = '''
+    c = """
     [section]
     [section2]]
-    '''
+    """
     with pytest.raises(ParseError, match='depth'):
         c = config_from_string(c)
 
 
 def test_parse5():
-    c = '''
+    c = """
     [section]
     [[[section2]]]
-    '''
+    """
     with pytest.raises(ParseError, match='nested'):
         c = config_from_string(c)
 
 
 def test_parse6():
-    c = '''
+    c = """
     [section]
     [section]
-    '''
+    """
     with pytest.raises(SectionError, match='duplicate section name'):
         c = config_from_string(c)
 
-    c = '''
+    c = """
     [section]
     [[section1]]
     [[[section3]]]
     [[section1]]
-    '''
+    """
     with pytest.raises(SectionError, match='duplicate section name'):
         c = config_from_string(c)
