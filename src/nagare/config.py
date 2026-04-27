@@ -589,7 +589,7 @@ class Section(dict):
         """
         section: Optional['Section']
 
-        section, value = self, self.get(name, (None, None))  # Lookup in this section
+        section, value = self, self.get(name)  # Lookup in this section
         if value is None:
             if ancestors:
                 # Search in parent sections
@@ -752,8 +752,8 @@ class Section(dict):
 
         # Process each element (or the single value)
         value = [
-            INTERPOLATION.sub(interpolate, e) if isinstance(e, str) else e
-            for e in (value if is_list else [value])  # type: ignore
+            INTERPOLATION.sub(interpolate, e) if isinstance(e, str) else e  # type: ignore
+            for e in (value if is_list else [value])
         ]
 
         return value if is_list else value[0]
@@ -933,6 +933,8 @@ class Section(dict):
         return self
 
 
+Config = Section
+
 # Configuration Factory Functions
 # ===============================
 
@@ -960,7 +962,7 @@ def config_from_dict(d: ConfigDict) -> Section:
         print(config['app_name'])  # 'MyApp'
         print(config['database']['host'])  # 'localhost'
     """
-    return Section().from_dict(d)
+    return Config().from_dict(d)
 
 
 def config_from_iter(lines: LineIterator, global_config: Optional[ConfigDict] = None, max_depth: int = 0) -> Section:
@@ -991,7 +993,7 @@ def config_from_iter(lines: LineIterator, global_config: Optional[ConfigDict] = 
         ])
         config = config_from_iter(lines)
     """
-    return Section().from_iter(lines, global_config, max_depth)
+    return Config().from_iter(lines, global_config, max_depth)
 
 
 def config_from_file(

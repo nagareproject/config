@@ -322,7 +322,14 @@ class Validator:
         return partial(cls._boolean, default)
 
     @staticmethod
-    def _string(default: str | object, v: str | None, ancestors_names: AncestorNames = (), name: str = '') -> str:
+    def _string(
+        default: str | object,
+        min_len: int | None,
+        max_len: int | None,
+        v: str | None,
+        ancestors_names: AncestorNames = (),
+        name: str = '',
+    ) -> str:
         """Internal method for validating string values.
 
         Simply ensures the value is not a list and returns it as-is,
@@ -330,6 +337,8 @@ class Validator:
 
         Args:
             default: Default value if v is None
+            min_len: optional minimun string length
+            max_len: optional maximun string length
             v: The value to validate
             ancestors_names: List of parent section names for error reporting
             name: The parameter name for error reporting
@@ -348,10 +357,28 @@ class Validator:
         if isinstance(v, list):
             raise ParameterError('not a string {}'.format(repr(v)), sections=ancestors_names, name=name)
 
-        return str(v)
+        v = str(v)
+
+        if (min_len is not None) and (len(v) < min_len):
+            raise ParameterError(
+                f"string '{v}' too short, must be at least {min_len} characters", sections=ancestors_names, name=name
+            )
+
+        if (max_len is not None) and (len(v) > max_len):
+            raise ParameterError(
+                f"string '{v}' too large, must be less than {max_len} characters", sections=ancestors_names, name=name
+            )
+
+        return v
 
     @classmethod
-    def string(cls, default: str | object = NO_DEFAULT, help: Optional[str] = None) -> ValidationFunction:
+    def string(
+        cls,
+        default: str | object = NO_DEFAULT,
+        min_len: int | None = None,
+        max_len: int | None = None,
+        help: str | None = None,
+    ) -> ValidationFunction:
         """Create a validator for string values.
 
         Returns a validation function that validates string values
@@ -359,6 +386,8 @@ class Validator:
 
         Args:
             default: Default value if None is provided (NO_DEFAULT means required)
+            min_len: optional minimun string length
+            max_len: optional maximun string length
             help: Help text for documentation (not used in validation)
 
         Returns:
@@ -370,7 +399,7 @@ class Validator:
             name = name_validator('MyApp')  # Returns 'MyApp'
             name = name_validator(None)     # Returns 'Unnamed' (default)
         """
-        return partial(cls._string, default)
+        return partial(cls._string, default, min_len, max_len)
 
     @staticmethod
     def _list(
