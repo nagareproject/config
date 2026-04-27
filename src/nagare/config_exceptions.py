@@ -126,7 +126,7 @@ class ContextualParseError(ParseError):
         ...     name="timeout"
         ... )
         >>> error.sections
-        ' [database] / [[connection]] / timeout'
+        ' [database] > [[connection]] > timeout'
     """
 
     def __init__(
@@ -163,7 +163,7 @@ class ContextualParseError(ParseError):
             ...     name="size"
             ... )
             >>> error.sections
-            ' [app] / [[database]] / [[[pool]]] / size'
+            ' [app] > [[database]] > [[[pool]]] > size'
         """
         # Format each section with appropriate bracket nesting level
         sections = [('[' * level) + section + (']' * level) for level, section in enumerate(self._sections, 1)]
@@ -173,7 +173,7 @@ class ContextualParseError(ParseError):
             sections.append(self.name)
 
         # Return formatted path with separators, or empty string if no sections
-        return (' ' + (' / '.join(sections))) if sections else ''
+        return (' ' + (' > '.join(sections))) if sections else ''
 
 
 class SpecificationError(ContextualParseError):
@@ -194,7 +194,7 @@ class SpecificationError(ContextualParseError):
         ...     name="port"
         ... )
         >>> str(error)
-        'Error line #5 for specification [app] / port: Invalid validator'
+        'Error line #5 for specification [app] > port: Invalid validator'
     """
 
     @property
@@ -223,7 +223,7 @@ class SectionError(ContextualParseError):
         ...     name="database"
         ... )
         >>> str(error)
-        'Error line #10 for section [app] / database: Duplicate section name'
+        'Error line #10 for section [app] > database: Duplicate section name'
     """
 
     @property
@@ -256,7 +256,7 @@ class ParameterError(SpecificationError):
         ...     name="port"
         ... )
         >>> str(error)
-        'Error line #15 for specification [database] / port for parameter [database] / port: Value out of range'
+        'Error line #15 for specification [database] > port: Value out of range'
     """
 
     @property
@@ -285,7 +285,7 @@ class InterpolationError(ContextualParseError):
         ...     name="file_path"
         ... )
         >>> str(error)
-        'Error in section [app] / [[logging]] / file_path: Circular reference detected'
+        'Error in section [app] > [[logging]] > file_path: Circular reference detected'
     """
 
     @property
@@ -314,7 +314,7 @@ class DirectiveError(ContextualParseError):
         ...     name="config"
         ... )
         >>> str(error)
-        'Error line #8 in section [app] / config: Unsupported directive \'include\''
+        'Error line #8 in section [app] > config: Unsupported directive \'include\''
     """
 
     @property
